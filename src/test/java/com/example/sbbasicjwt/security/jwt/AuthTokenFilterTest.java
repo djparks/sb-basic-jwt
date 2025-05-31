@@ -7,9 +7,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class AuthTokenFilterTest {
 
     @Mock
@@ -65,11 +66,11 @@ public class AuthTokenFilterTest {
     public void testDoFilterInternal_WithValidToken() throws Exception {
         // Mock request to return a valid Authorization header
         when(request.getHeader("Authorization")).thenReturn("Bearer " + validToken);
-        
+
         // Mock JWT utils to validate the token and extract username
         when(jwtUtils.validateJwtToken(validToken)).thenReturn(true);
         when(jwtUtils.getUserNameFromJwtToken(validToken)).thenReturn(username);
-        
+
         // Mock user details service to return our test user
         when(userDetailsService.loadUserByUsername(username)).thenReturn(userDetails);
 
@@ -78,7 +79,7 @@ public class AuthTokenFilterTest {
 
         // Verify that the filter chain was called
         verify(filterChain).doFilter(request, response);
-        
+
         // Verify that the authentication was set in the security context
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
         assertThat(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).isEqualTo(userDetails);
@@ -88,7 +89,7 @@ public class AuthTokenFilterTest {
     public void testDoFilterInternal_WithInvalidToken() throws Exception {
         // Mock request to return an invalid Authorization header
         when(request.getHeader("Authorization")).thenReturn("Bearer invalidToken");
-        
+
         // Mock JWT utils to invalidate the token
         when(jwtUtils.validateJwtToken("invalidToken")).thenReturn(false);
 
@@ -97,10 +98,10 @@ public class AuthTokenFilterTest {
 
         // Verify that the filter chain was called
         verify(filterChain).doFilter(request, response);
-        
+
         // Verify that no authentication was set in the security context
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        
+
         // Verify that user details service was not called
         verify(userDetailsService, never()).loadUserByUsername(anyString());
     }
@@ -115,10 +116,10 @@ public class AuthTokenFilterTest {
 
         // Verify that the filter chain was called
         verify(filterChain).doFilter(request, response);
-        
+
         // Verify that no authentication was set in the security context
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        
+
         // Verify that JWT utils and user details service were not called
         verify(jwtUtils, never()).validateJwtToken(anyString());
         verify(userDetailsService, never()).loadUserByUsername(anyString());
@@ -134,10 +135,10 @@ public class AuthTokenFilterTest {
 
         // Verify that the filter chain was called
         verify(filterChain).doFilter(request, response);
-        
+
         // Verify that no authentication was set in the security context
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        
+
         // Verify that JWT utils and user details service were not called
         verify(jwtUtils, never()).validateJwtToken(anyString());
         verify(userDetailsService, never()).loadUserByUsername(anyString());
@@ -147,7 +148,7 @@ public class AuthTokenFilterTest {
     public void testDoFilterInternal_WithException() throws Exception {
         // Mock request to return a valid Authorization header
         when(request.getHeader("Authorization")).thenReturn("Bearer " + validToken);
-        
+
         // Mock JWT utils to throw an exception
         when(jwtUtils.validateJwtToken(validToken)).thenThrow(new RuntimeException("Test exception"));
 
@@ -156,7 +157,7 @@ public class AuthTokenFilterTest {
 
         // Verify that the filter chain was called despite the exception
         verify(filterChain).doFilter(request, response);
-        
+
         // Verify that no authentication was set in the security context
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
