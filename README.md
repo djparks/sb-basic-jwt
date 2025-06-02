@@ -21,6 +21,10 @@ This is a Spring Boot 3.2 application that demonstrates JWT authentication with 
 - Maven
 - H2 Database
 
+## Todo's
+
+- [ ] Understand and make BASIC/JWT match approach at work.
+
 ## Getting Started
 
 ### Prerequisites
